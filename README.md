@@ -1,1 +1,1443 @@
-# Centris-Bot
+[index.html](https://github.com/user-attachments/files/26616434/index.html)
+# Centris-Bot<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Centris Research Bot</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f5f4f1;
+  --surface: #ffffff;
+  --surface2: #f0ede8;
+  --border: rgba(0,0,0,0.1);
+  --border2: rgba(0,0,0,0.06);
+  --text: #1a1a18;
+  --muted: #6b6b68;
+  --hint: #9a9a96;
+  --accent: #D85A30;
+  --accent-bg: #FAECE7;
+  --accent-text: #993C1D;
+  --accent-border: rgba(216,90,48,0.3);
+  --blue: #378ADD;
+  --blue-bg: #E6F1FB;
+  --blue-text: #185FA5;
+  --green-bg: #EAF3DE;
+  --green-text: #3B6D11;
+  --amber-bg: #FAEEDA;
+  --amber-text: #854F0B;
+  --r: 12px;
+  --r-sm: 8px;
+  --r-xs: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #181816;
+    --surface: #222220;
+    --surface2: #2a2a28;
+    --border: rgba(255,255,255,0.1);
+    --border2: rgba(255,255,255,0.05);
+    --text: #ede9e3;
+    --muted: #9a9a96;
+    --hint: #6b6b68;
+    --accent: #F0997B;
+    --accent-bg: #4A1B0C;
+    --accent-text: #F5C4B3;
+    --accent-border: rgba(240,153,123,0.3);
+    --blue: #85B7EB;
+    --blue-bg: #042C53;
+    --blue-text: #85B7EB;
+    --green-bg: #173404;
+    --green-text: #97C459;
+    --amber-bg: #412402;
+    --amber-text: #FAC775;
+  }
+}
+html, body { height: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Header ── */
+header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 0.5px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+  z-index: 10;
+}
+.logo {
+  width: 32px; height: 32px;
+  background: var(--accent);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 600; font-size: 12px;
+  flex-shrink: 0;
+}
+.header-title { font-size: 15px; font-weight: 500; }
+.header-sub { font-size: 11px; color: var(--muted); }
+.header-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.hbtn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 6px 12px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-xs);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.hbtn:hover { background: var(--surface2); }
+.hbtn.primary { background: var(--accent); color: #fff; border-color: transparent; }
+.hbtn.primary:hover { opacity: 0.9; }
+.hbtn svg { flex-shrink: 0; }
+.filter-toggle-btn { display: none; }
+
+/* ── Layout ── */
+.layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  gap: 0;
+}
+
+/* ── Sidebar (filters) ── */
+.sidebar {
+  width: 230px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 0.5px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  transition: transform 0.2s;
+}
+.sidebar-section {
+  padding: 14px 14px 10px;
+  border-bottom: 0.5px solid var(--border2);
+}
+.sidebar-section:last-child { border-bottom: none; }
+.section-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
+}
+.filter-group { margin-bottom: 10px; }
+.filter-label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 4px;
+  display: block;
+}
+select, input[type=text], input[type=number] {
+  width: 100%;
+  padding: 7px 10px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-xs);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  appearance: none;
+}
+select:focus, input[type=text]:focus, input[type=number]:focus {
+  border-color: var(--accent);
+}
+.price-row { display: flex; gap: 6px; align-items: center; }
+.price-row input { flex: 1; min-width: 0; }
+.price-row span { font-size: 12px; color: var(--muted); flex-shrink: 0; }
+.bed-btns { display: flex; gap: 4px; flex-wrap: wrap; }
+.bed-btn {
+  padding: 5px 10px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-xs);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.bed-btn:hover, .bed-btn.active {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent-text);
+}
+.apply-btn {
+  width: 100%;
+  padding: 8px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-xs);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 4px;
+}
+.apply-btn:hover { opacity: 0.9; }
+.clear-link {
+  display: block;
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  margin-top: 6px;
+  text-decoration: underline;
+}
+.clear-link:hover { color: var(--accent); }
+
+/* ── Saved searches panel ── */
+.saved-panel {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-left: 0.5px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.panel-header {
+  padding: 12px 14px;
+  border-bottom: 0.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.panel-header span { font-size: 13px; font-weight: 500; }
+.panel-count {
+  background: var(--accent-bg);
+  color: var(--accent-text);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+.saved-list { flex: 1; overflow-y: auto; padding: 8px; }
+.saved-item {
+  padding: 8px 10px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-xs);
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: background 0.12s;
+  position: relative;
+}
+.saved-item:hover { background: var(--surface2); }
+.saved-item .sq { font-size: 12px; font-weight: 500; color: var(--text); line-height: 1.4; }
+.saved-item .sm { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.saved-item .del {
+  position: absolute;
+  top: 6px; right: 8px;
+  font-size: 14px;
+  color: var(--hint);
+  cursor: pointer;
+  line-height: 1;
+}
+.saved-item .del:hover { color: var(--accent); }
+.no-saved {
+  text-align: center;
+  color: var(--hint);
+  font-size: 12px;
+  padding: 20px 12px;
+  line-height: 1.6;
+}
+.panel-footer {
+  padding: 10px 14px;
+  border-top: 0.5px solid var(--border);
+  flex-shrink: 0;
+}
+.panel-footer button {
+  width: 100%;
+  padding: 7px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-xs);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.panel-footer button:hover { background: var(--green-bg); color: var(--green-text); border-color: transparent; }
+
+/* ── Main chat ── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+.chat-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.msg { display: flex; gap: 8px; }
+.msg.user { flex-direction: row-reverse; }
+.av {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.av.bot { background: var(--accent-bg); color: var(--accent-text); }
+.av.user { background: var(--blue-bg); color: var(--blue-text); }
+.bubble {
+  max-width: 75%;
+  padding: 10px 13px;
+  border-radius: var(--r);
+  font-size: 13.5px;
+  line-height: 1.65;
+  border: 0.5px solid var(--border);
+  background: var(--surface);
+}
+.msg.user .bubble {
+  background: var(--blue-bg);
+  border-color: transparent;
+  color: var(--blue-text);
+  border-radius: var(--r) var(--r-xs) var(--r) var(--r);
+}
+.bubble h3 { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+.bubble h4 { font-size: 13px; font-weight: 500; margin: 10px 0 4px; }
+.bubble ul { padding-left: 18px; }
+.bubble li { margin-bottom: 3px; }
+.bubble p + p { margin-top: 6px; }
+.bubble strong { font-weight: 500; }
+.source-bar {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 0.5px solid var(--border);
+  font-size: 11px;
+  color: var(--muted);
+}
+.source-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+
+/* Comparables table */
+.comps-wrapper {
+  margin-top: 10px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  font-size: 12px;
+}
+.comps-header {
+  padding: 7px 12px;
+  background: var(--surface2);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.comp-row {
+  display: grid;
+  grid-template-columns: 1fr 80px 60px 60px;
+  gap: 0;
+  border-bottom: 0.5px solid var(--border2);
+  padding: 7px 12px;
+  align-items: center;
+}
+.comp-row:last-child { border-bottom: none; }
+.comp-row.head { background: var(--surface2); font-weight: 500; font-size: 11px; color: var(--muted); }
+.comp-row .price { color: var(--accent); font-weight: 500; }
+.comp-row .addr { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.comp-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 500;
+  background: var(--green-bg);
+  color: var(--green-text);
+}
+.comp-badge.sold { background: var(--amber-bg); color: var(--amber-text); }
+
+/* Thinking */
+.thinking-dots {
+  display: flex; gap: 4px; align-items: center;
+  padding: 10px 13px;
+  border: 0.5px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--r);
+  max-width: 80px;
+}
+.dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--muted);
+  animation: bounce 1.2s infinite;
+}
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-5px); }
+}
+.search-status {
+  padding: 4px 0 0 36px;
+  font-size: 11px;
+  color: var(--muted);
+  display: flex; align-items: center; gap: 6px;
+}
+.pulse {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1.4s infinite;
+  flex-shrink: 0;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; } 50% { opacity: 0.2; }
+}
+
+/* Suggestions */
+.chips {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 0 16px 10px;
+  flex-shrink: 0;
+}
+.chip {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  border: 0.5px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  color: var(--text);
+  transition: all 0.12s;
+  white-space: nowrap;
+}
+.chip:hover { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent-text); }
+
+/* Input bar */
+.input-bar {
+  padding: 10px 16px 12px;
+  border-top: 0.5px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.input-bar input {
+  flex: 1;
+  padding: 9px 13px;
+  border-radius: var(--r-sm);
+  border: 0.5px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13.5px;
+  outline: none;
+}
+.input-bar input:focus { border-color: var(--accent); }
+.input-bar input::placeholder { color: var(--hint); }
+.send-btn {
+  padding: 9px 16px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.send-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.save-search-btn {
+  padding: 9px 13px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  display: flex; align-items: center; gap: 4px;
+  white-space: nowrap;
+}
+.save-search-btn:hover { background: var(--amber-bg); color: var(--amber-text); border-color: transparent; }
+
+/* Active filters bar */
+.active-filters {
+  padding: 6px 16px;
+  background: var(--accent-bg);
+  border-bottom: 0.5px solid var(--accent-border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.active-filters span { font-size: 11px; color: var(--accent-text); }
+.filter-tag {
+  padding: 3px 9px;
+  background: var(--surface);
+  border: 0.5px solid var(--accent-border);
+  border-radius: 10px;
+  font-size: 11px;
+  color: var(--accent-text);
+  display: flex; align-items: center; gap: 4px;
+}
+.filter-tag button { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 13px; line-height: 1; padding: 0; }
+
+/* Login modal */
+.modal-error {
+  font-size: 12px; color: var(--accent);
+  margin-bottom: 10px; display: none;
+}
+.login-divider {
+  text-align: center; font-size: 11px;
+  color: var(--hint); margin: 10px 0;
+}
+.user-chip {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; color: var(--green-text);
+  background: var(--green-bg);
+  padding: 4px 10px; border-radius: 10px;
+}
+.logout-btn {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 12px; color: var(--muted);
+  background: none; border: 0.5px solid var(--border);
+  border-radius: 10px; padding: 4px 10px; cursor: pointer;
+}
+.logout-btn:hover { color: var(--accent); border-color: var(--accent-border); }
+
+/* Key modal */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-box {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r);
+  padding: 28px;
+  width: 100%; max-width: 420px;
+}
+.modal-logo {
+  width: 44px; height: 44px;
+  background: var(--accent);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 16px;
+  margin-bottom: 16px;
+}
+.modal-box h2 { font-size: 17px; font-weight: 500; margin-bottom: 6px; }
+.modal-box p { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 18px; }
+.modal-box p a { color: var(--accent); text-decoration: none; }
+.modal-box p a:hover { text-decoration: underline; }
+.key-input-wrap {
+  position: relative; margin-bottom: 12px;
+}
+.key-input-wrap input {
+  width: 100%; padding: 10px 40px 10px 13px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px; font-family: monospace;
+  outline: none;
+}
+.key-input-wrap input:focus { border-color: var(--accent); }
+.key-input-wrap input::placeholder { font-family: -apple-system, sans-serif; color: var(--hint); }
+.eye-btn {
+  position: absolute; right: 10px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  color: var(--muted); padding: 4px;
+}
+.eye-btn:hover { color: var(--text); }
+.modal-hint {
+  font-size: 11px; color: var(--hint);
+  margin-bottom: 18px; line-height: 1.5;
+}
+.modal-hint strong { color: var(--muted); font-weight: 500; }
+.modal-submit {
+  width: 100%; padding: 10px;
+  background: var(--accent); color: #fff;
+  border: none; border-radius: var(--r-sm);
+  font-size: 14px; font-weight: 500;
+  cursor: pointer;
+}
+.modal-submit:hover { opacity: 0.9; }
+.modal-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+.modal-error {
+  font-size: 12px; color: var(--accent);
+  margin-bottom: 10px; display: none;
+}
+.key-status {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--green-text);
+  background: var(--green-bg);
+  padding: 4px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.key-status:hover { opacity: 0.8; }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: var(--text);
+  color: var(--bg);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  opacity: 0;
+  transition: all 0.3s;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 100;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .saved-panel { display: none; }
+}
+@media (max-width: 680px) {
+  .sidebar { position: absolute; left: 0; top: 0; height: 100%; z-index: 50; transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); box-shadow: 4px 0 20px rgba(0,0,0,0.15); }
+  .filter-toggle-btn { display: flex; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">CR</div>
+  <div>
+    <div class="header-title">Centris Research Bot</div>
+    <div class="header-sub">Quebec real estate intelligence</div>
+  </div>
+  <div class="header-actions">
+    <div id="key-status-btn" class="key-status" onclick="showKeyModal()" style="display:none" title="Change API key">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="6" r="3.5" stroke="currentColor" stroke-width="1.4"/><path d="M8.5 8.5l4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Key set
+    </div>
+    <div id="user-info" class="user-chip" style="display:none"></div>
+    <button id="login-btn" class="hbtn" onclick="showLoginModal()" style="display:flex">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M2 14c0-3 2.5-5 6-5s6 2 6 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Sign in
+    </button>
+    <button id="logout-btn" class="logout-btn" onclick="logout()" style="display:none">Sign out</button>
+    <button class="hbtn filter-toggle-btn" onclick="toggleSidebar()">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Filters
+    </button>
+    <button class="hbtn" onclick="exportExcel()">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1v9M4 6l4 4 4-4M2 11v2a1 1 0 001 1h10a1 1 0 001-1v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Export Excel
+    </button>
+    <button class="hbtn" onclick="exportImmoContract()">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="1" width="12" height="14" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 5h6M5 8h6M5 11h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Immo Contract
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- Filters sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-section">
+      <div class="section-title">Location</div>
+      <div class="filter-group">
+        <label class="filter-label">City / Region</label>
+        <select id="f-city">
+          <option value="">Any city</option>
+          <option value="Montréal">Montréal</option>
+          <option value="Laval">Laval</option>
+          <option value="Longueuil">Longueuil</option>
+          <option value="Brossard">Brossard</option>
+          <option value="Repentigny">Repentigny</option>
+          <option value="Saint-Bruno">Saint-Bruno</option>
+          <option value="Boucherville">Boucherville</option>
+          <option value="Terrebonne">Terrebonne</option>
+          <option value="Blainville">Blainville</option>
+          <option value="Mirabel">Mirabel</option>
+          <option value="Quebec City">Quebec City</option>
+          <option value="Gatineau">Gatineau</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Neighbourhood (optional)</label>
+        <input type="text" id="f-neighbourhood" placeholder="e.g. Plateau, NDG, Vieux…" />
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="section-title">Property</div>
+      <div class="filter-group">
+        <label class="filter-label">Type</label>
+        <select id="f-type">
+          <option value="">Any type</option>
+          <option value="condo">Condo / Appartement</option>
+          <option value="house">Maison unifamiliale</option>
+          <option value="duplex">Duplex</option>
+          <option value="triplex">Triplex</option>
+          <option value="plex 4+">Quadruplex / Plex 4+</option>
+          <option value="townhouse">Maison de ville</option>
+          <option value="cottage">Cottage / Bungalow</option>
+          <option value="land">Terrain</option>
+          <option value="commercial">Commercial</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Bedrooms</label>
+        <div class="bed-btns" id="bed-btns">
+          <button class="bed-btn active" data-val="" onclick="selectBed(this)">Any</button>
+          <button class="bed-btn" data-val="1" onclick="selectBed(this)">1+</button>
+          <button class="bed-btn" data-val="2" onclick="selectBed(this)">2+</button>
+          <button class="bed-btn" data-val="3" onclick="selectBed(this)">3+</button>
+          <button class="bed-btn" data-val="4" onclick="selectBed(this)">4+</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="section-title">Price Range</div>
+      <div class="filter-group">
+        <label class="filter-label">Min price ($)</label>
+        <input type="number" id="f-min" placeholder="e.g. 200000" step="10000" />
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Max price ($)</label>
+        <input type="number" id="f-max" placeholder="e.g. 800000" step="10000" />
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="section-title">Listing</div>
+      <div class="filter-group">
+        <label class="filter-label">Max days on market</label>
+        <select id="f-dom">
+          <option value="">Any</option>
+          <option value="7">≤ 7 days</option>
+          <option value="14">≤ 14 days</option>
+          <option value="30">≤ 30 days</option>
+          <option value="60">≤ 60 days</option>
+          <option value="90">≤ 90 days</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Status</label>
+        <select id="f-status">
+          <option value="">Active listings</option>
+          <option value="sold">Recent sales</option>
+          <option value="both">Both</option>
+        </select>
+      </div>
+      <button class="apply-btn" onclick="applyFilters()">Apply Filters</button>
+      <span class="clear-link" onclick="clearFilters()">Clear all filters</span>
+    </div>
+  </div>
+
+  <!-- Main chat -->
+  <div class="main">
+    <div id="active-filter-bar" style="display:none" class="active-filters">
+      <span>Filters:</span>
+    </div>
+
+    <div class="chat-scroll" id="chat">
+      <div class="msg bot">
+        <div class="av bot">CR</div>
+        <div class="bubble">
+          <h3>Bonjour! Centris Research Bot is ready.</h3>
+          <p>I search Centris.ca and Quebec real estate sources in real time. Use the filters on the left to narrow your search, then ask me anything about listings, comparables, market trends, or neighbourhood data.</p>
+          <p>Results can be exported to <strong>Excel</strong> or formatted for <strong>Immo Contract</strong> with one click.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chips" id="chips">
+      <button class="chip" onclick="useChip(this)">Condos under $500k Montreal</button>
+      <button class="chip" onclick="useChip(this)">Plex market Repentigny 2025</button>
+      <button class="chip" onclick="useChip(this)">Avg price vs asking Laval</button>
+      <button class="chip" onclick="useChip(this)">Best ROI neighbourhoods South Shore</button>
+      <button class="chip" onclick="useChip(this)">Days on market NDG vs Rosemont</button>
+    </div>
+
+    <div class="input-bar">
+      <button class="save-search-btn" onclick="saveCurrentSearch()" title="Save this search">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 1l2 4 5 .7-3.5 3.4.8 5L8 11.5 3.7 14l.8-5L1 5.7 6 5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+        Save
+      </button>
+      <input type="text" id="q" placeholder="Search listings, market data, comparables…" onkeydown="if(event.key==='Enter')send()" />
+      <button class="send-btn" id="sbtn" onclick="send()">Search</button>
+    </div>
+  </div>
+
+  <!-- Saved searches panel -->
+  <div class="saved-panel">
+    <div class="panel-header">
+      <span>Saved searches</span>
+      <span class="panel-count" id="save-count">0</span>
+    </div>
+    <div class="saved-list" id="saved-list">
+      <div class="no-saved">Save searches to revisit them or include in your Excel export.</div>
+    </div>
+    <div class="panel-footer">
+      <button onclick="exportSavedExcel()">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 1v9M4 6l4 4 4-4M2 11v2a1 1 0 001 1h10a1 1 0 001-1v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Export saved to Excel
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const chatEl = document.getElementById('chat');
+const inputEl = document.getElementById('q');
+const sbtn = document.getElementById('sbtn');
+
+let history = [];
+let savedSearches = [];
+let lastQuery = '';
+let activeFilters = {};
+let allResults = [];
+let currentUser = null;
+
+const SUPABASE_URL = 'https://bwkbjmtqkdulhcixxein.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3a2JqbXRxa2R1bGhjaXh4ZWluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3NjkxNzIsImV4cCI6MjA5MTM0NTE3Mn0.CNg5WuDdvRxommoYjhdj1lgxu039FAEKhfstETxMBT8';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function initSupabase() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    currentUser = session.user;
+    updateUserUI();
+    loadSavedSearches();
+  }
+}
+
+function updateUserUI() {
+  const el = document.getElementById('user-info');
+  if (currentUser) {
+    el.textContent = currentUser.email.split('@')[0];
+    el.style.display = 'flex';
+    document.getElementById('login-btn').style.display = 'none';
+    document.getElementById('logout-btn').style.display = 'flex';
+  } else {
+    el.style.display = 'none';
+    document.getElementById('login-btn').style.display = 'flex';
+    document.getElementById('logout-btn').style.display = 'none';
+  }
+}
+
+async function saveSearchToSupabase(query, result) {
+  if (!currentUser) return;
+  await sb.from('searches').insert({
+    query: query,
+    city: activeFilters.city || '',
+    result: result.slice(0, 2000),
+    user_email: currentUser.email,
+    created_at: new Date().toISOString()
+  });
+}
+
+async function loadSavedSearches() {
+  if (!currentUser) return;
+  const { data } = await sb.from('searches')
+    .select('*')
+    .eq('user_email', currentUser.email)
+    .order('created_at', { ascending: false })
+    .limit(20);
+  if (data && data.length) {
+    savedSearches = data.map(d => ({
+      id: d.id,
+      query: d.query,
+      filters: { city: d.city },
+      date: new Date(d.created_at).toLocaleDateString('fr-CA'),
+      results: 0
+    }));
+    renderSavedList();
+  }
+}
+
+function showLoginModal() {
+  document.getElementById('login-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('login-email').focus(), 80);
+}
+
+function hideLoginModal() {
+  document.getElementById('login-modal').style.display = 'none';
+}
+
+async function submitLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+  if (!email || !password) { errEl.textContent = 'Enter your email and password.'; errEl.style.display = 'block'; return; }
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+  currentUser = data.user;
+  updateUserUI();
+  loadSavedSearches();
+  hideLoginModal();
+  toast('Logged in as ' + email.split('@')[0]);
+}
+
+async function logout() {
+  await sb.auth.signOut();
+  currentUser = null;
+  updateUserUI();
+  toast('Logged out');
+}
+
+const SYSTEM = `You are a Quebec real estate research assistant specialized in Centris.ca.
+
+Always web search first. Be concise and data-focused.
+
+Search: Centris.ca, JLR Solutions Foncières, QPAREB, CIGM.
+
+When answering:
+- Include real listing data: address, price, beds, baths, sq ft, days on market
+- Format listings with: PRICE, ADDRESS, TYPE, BEDS, DOM
+- Include market stats: median price, inventory, trends
+- Cite sources
+- Respond in the same language as the question`;
+
+function getFilterPrompt() {
+  const f = activeFilters;
+  const parts = [];
+  if (f.city) parts.push(`City: ${f.city}`);
+  if (f.neighbourhood) parts.push(`Neighbourhood: ${f.neighbourhood}`);
+  if (f.type) parts.push(`Property type: ${f.type}`);
+  if (f.beds) parts.push(`Minimum bedrooms: ${f.beds}+`);
+  if (f.min) parts.push(`Minimum price: $${Number(f.min).toLocaleString()}`);
+  if (f.max) parts.push(`Maximum price: $${Number(f.max).toLocaleString()}`);
+  if (f.dom) parts.push(`Maximum days on market: ${f.dom}`);
+  if (f.status === 'sold') parts.push('Focus on recent sales / comparables');
+  if (f.status === 'both') parts.push('Include both active listings and recent sales');
+  return parts.length ? '\n\nACTIVE SEARCH FILTERS (apply these to your search):\n' + parts.join('\n') : '';
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function selectBed(btn) {
+  document.querySelectorAll('.bed-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function applyFilters() {
+  activeFilters = {
+    city: document.getElementById('f-city').value,
+    neighbourhood: document.getElementById('f-neighbourhood').value.trim(),
+    type: document.getElementById('f-type').value,
+    beds: document.querySelector('.bed-btn.active')?.dataset.val || '',
+    min: document.getElementById('f-min').value,
+    max: document.getElementById('f-max').value,
+    dom: document.getElementById('f-dom').value,
+    status: document.getElementById('f-status').value
+  };
+  renderFilterBar();
+  toast('Filters applied — next search will use them');
+  if (window.innerWidth < 680) toggleSidebar();
+}
+
+function clearFilters() {
+  activeFilters = {};
+  document.getElementById('f-city').value = '';
+  document.getElementById('f-neighbourhood').value = '';
+  document.getElementById('f-type').value = '';
+  document.querySelectorAll('.bed-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.bed-btn[data-val=""]').classList.add('active');
+  document.getElementById('f-min').value = '';
+  document.getElementById('f-max').value = '';
+  document.getElementById('f-dom').value = '';
+  document.getElementById('f-status').value = '';
+  renderFilterBar();
+  toast('Filters cleared');
+}
+
+function renderFilterBar() {
+  const bar = document.getElementById('active-filter-bar');
+  const tags = Object.entries(activeFilters)
+    .filter(([k, v]) => v)
+    .map(([k, v]) => {
+      const labels = { city: 'City', neighbourhood: 'Area', type: 'Type', beds: 'Beds', min: 'Min $', max: 'Max $', dom: 'DOM', status: 'Status' };
+      const vals = { min: '$' + Number(v).toLocaleString(), max: '$' + Number(v).toLocaleString(), beds: v + '+', dom: '≤' + v + 'd' };
+      return `<span class="filter-tag">${labels[k]}: ${vals[k] || v}<button onclick="removeFilter('${k}')">×</button></span>`;
+    });
+  if (tags.length) {
+    bar.style.display = 'flex';
+    bar.innerHTML = '<span>Filters:</span>' + tags.join('');
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+function removeFilter(key) {
+  delete activeFilters[key];
+  if (key === 'city') document.getElementById('f-city').value = '';
+  if (key === 'neighbourhood') document.getElementById('f-neighbourhood').value = '';
+  if (key === 'type') document.getElementById('f-type').value = '';
+  if (key === 'beds') { document.querySelectorAll('.bed-btn').forEach(b => b.classList.remove('active')); document.querySelector('.bed-btn[data-val=""]').classList.add('active'); }
+  if (key === 'min') document.getElementById('f-min').value = '';
+  if (key === 'max') document.getElementById('f-max').value = '';
+  if (key === 'dom') document.getElementById('f-dom').value = '';
+  if (key === 'status') document.getElementById('f-status').value = '';
+  renderFilterBar();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+function addMsg(role, html) {
+  const d = document.createElement('div');
+  d.className = 'msg ' + role;
+  d.innerHTML = `<div class="av ${role}">${role === 'user' ? 'VY' : 'CR'}</div><div class="bubble">${html}</div>`;
+  chatEl.appendChild(d);
+  d.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  return d;
+}
+
+function addThinking() {
+  const d = document.createElement('div');
+  d.className = 'msg bot'; d.id = 'thinking';
+  d.innerHTML = `<div class="av bot">CR</div><div class="thinking-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  chatEl.appendChild(d);
+  d.scrollIntoView({ behavior: 'smooth', block: 'end' });
+}
+
+function addStatus(txt) {
+  document.getElementById('search-status-msg')?.remove();
+  const d = document.createElement('div');
+  d.id = 'search-status-msg'; d.className = 'search-status';
+  d.innerHTML = `<div class="pulse"></div>${txt}`;
+  chatEl.appendChild(d);
+  d.scrollIntoView({ behavior: 'smooth', block: 'end' });
+}
+
+function fmt(text) {
+  text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/__(.*?)__/g, '<strong>$1</strong>');
+  text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  const lines = text.split('\n');
+  let html = ''; let inList = false;
+  for (const line of lines) {
+    const t = line.trim();
+    if (!t) { if (inList) { html += '</ul>'; inList = false; } continue; }
+    if (t.startsWith('- ') || t.startsWith('• ') || t.match(/^\* [^*]/)) {
+      if (!inList) { html += '<ul>'; inList = true; }
+      html += `<li>${t.replace(/^[-•*] /, '')}</li>`;
+    } else {
+      if (inList) { html += '</ul>'; inList = false; }
+      if (t.startsWith('### ')) html += `<h4>${t.slice(4)}</h4>`;
+      else if (t.startsWith('## ')) html += `<h3>${t.slice(3)}</h3>`;
+      else if (t.startsWith('# ')) html += `<h3>${t.slice(2)}</h3>`;
+      else html += `<p>${t}</p>`;
+    }
+  }
+  if (inList) html += '</ul>';
+  return html;
+}
+
+function extractProperties(text) {
+  const props = [];
+  const lines = text.split('\n');
+  let current = null;
+  for (const line of lines) {
+    const t = line.trim();
+    const priceMatch = t.match(/\$[\d,]+(?:k|K)?|\d{3}[\s,]\d{3}(?:\s*\$)?/);
+    if (priceMatch && (t.includes('PRICE') || t.includes('prix') || t.toLowerCase().includes('listed') || t.toLowerCase().includes('inscrit'))) {
+      if (current) props.push(current);
+      current = { price: priceMatch[0], address: '', type: '', beds: '', dom: '' };
+    }
+    if (current) {
+      if (t.match(/ADDRESS|ADRESSE/i) && t.includes(':')) current.address = t.split(':').slice(1).join(':').trim();
+      if (t.match(/TYPE/i) && t.includes(':')) current.type = t.split(':').slice(1).join(':').trim();
+      if (t.match(/BEDS?|CHAMBRES?/i) && t.includes(':')) current.beds = t.split(':').slice(1).join(':').trim();
+      if (t.match(/DOM/i) && t.includes(':')) current.dom = t.split(':').slice(1).join(':').trim();
+    }
+  }
+  if (current) props.push(current);
+  return props;
+}
+
+function buildCompsTable(props) {
+  if (!props.length) return '';
+  const rows = props.map(p => `
+    <div class="comp-row">
+      <div>
+        <div>${p.type || '—'} ${p.beds ? '· ' + p.beds + ' ch.' : ''}</div>
+        <div class="addr">${p.address || '—'}</div>
+      </div>
+      <div class="price">${p.price}</div>
+      <div>${p.dom ? p.dom + 'j' : '—'}</div>
+      <div><span class="comp-badge">Actif</span></div>
+    </div>`).join('');
+  return `<div class="comps-wrapper">
+    <div class="comps-header"><span>Comparables extraits</span><span>${props.length} propriété${props.length > 1 ? 's' : ''}</span></div>
+    <div class="comp-row head"><div>Type / Adresse</div><div>Prix</div><div>DOM</div><div>Statut</div></div>
+    ${rows}
+  </div>`;
+}
+
+function useChip(btn) {
+  inputEl.value = btn.textContent;
+  send();
+}
+
+function saveCurrentSearch() {
+  const q = lastQuery || inputEl.value.trim();
+  if (!q) { toast('Type a search first'); return; }
+  const entry = {
+    id: Date.now(),
+    query: q,
+    filters: { ...activeFilters },
+    date: new Date().toLocaleDateString('fr-CA'),
+    results: allResults.length
+  };
+  savedSearches.unshift(entry);
+  renderSavedList();
+  toast('Search saved');
+}
+
+function renderSavedList() {
+  const list = document.getElementById('saved-list');
+  document.getElementById('save-count').textContent = savedSearches.length;
+  if (!savedSearches.length) {
+    list.innerHTML = '<div class="no-saved">Save searches to revisit them or include in your Excel export.</div>';
+    return;
+  }
+  list.innerHTML = savedSearches.map(s => `
+    <div class="saved-item" onclick="replaySearch('${s.id}')">
+      <span class="del" onclick="event.stopPropagation();deleteSaved('${s.id}')">×</span>
+      <div class="sq">${s.query.length > 40 ? s.query.slice(0, 40) + '…' : s.query}</div>
+      <div class="sm">${s.date} ${Object.keys(s.filters).filter(k => s.filters[k]).length ? '· ' + Object.keys(s.filters).filter(k => s.filters[k]).length + ' filters' : ''}</div>
+    </div>`).join('');
+}
+
+function replaySearch(id) {
+  const s = savedSearches.find(x => x.id == id);
+  if (!s) return;
+  activeFilters = { ...s.filters };
+  renderFilterBar();
+  inputEl.value = s.query;
+  send();
+}
+
+function deleteSaved(id) {
+  savedSearches = savedSearches.filter(s => s.id != id);
+  renderSavedList();
+}
+
+function buildExcelData() {
+  const rows = [['Date', 'Search Query', 'City', 'Type', 'Min Price', 'Max Price', 'Bedrooms', 'DOM', 'Response Summary']];
+  for (let i = 0; i < history.length; i += 2) {
+    const uMsg = history[i];
+    const aMsg = history[i + 1];
+    const q = typeof uMsg.content === 'string' ? uMsg.content : uMsg.content[0]?.text || '';
+    const a = Array.isArray(aMsg?.content) ? aMsg.content.filter(b => b.type === 'text').map(b => b.text).join(' ').slice(0, 500) + '…' : '';
+    const qClean = q.split('\n')[0];
+    rows.push([
+      new Date().toLocaleDateString('fr-CA'),
+      qClean,
+      activeFilters.city || '', activeFilters.type || '',
+      activeFilters.min || '', activeFilters.max || '',
+      activeFilters.beds || '', activeFilters.dom || '',
+      a.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().slice(0, 500)
+    ]);
+  }
+  return rows;
+}
+
+function buildCompsExcelData() {
+  const rows = [['Type', 'Address', 'Price', 'Days on Market', 'Status']];
+  for (const p of allResults) {
+    rows.push([p.type || '', p.address || '', p.price, p.dom || '', 'Active']);
+  }
+  return rows;
+}
+
+function exportExcel() {
+  if (!history.length) { toast('No search history to export yet'); return; }
+  const wb = XLSX.utils.book_new();
+  const ws1 = XLSX.utils.aoa_to_sheet(buildExcelData());
+  ws1['!cols'] = [{ wch: 12 }, { wch: 40 }, { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 8 }, { wch: 70 }];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Search History');
+
+  if (allResults.length) {
+    const ws2 = XLSX.utils.aoa_to_sheet(buildCompsExcelData());
+    ws2['!cols'] = [{ wch: 16 }, { wch: 35 }, { wch: 14 }, { wch: 10 }, { wch: 10 }];
+    XLSX.utils.book_append_sheet(wb, ws2, 'Comparables');
+  }
+
+  const saved = [['Date', 'Query', 'City', 'Type', 'Min $', 'Max $']];
+  for (const s of savedSearches) {
+    saved.push([s.date, s.query, s.filters.city || '', s.filters.type || '', s.filters.min || '', s.filters.max || '']);
+  }
+  if (saved.length > 1) {
+    const ws3 = XLSX.utils.aoa_to_sheet(saved);
+    XLSX.utils.book_append_sheet(wb, ws3, 'Saved Searches');
+  }
+
+  XLSX.writeFile(wb, `Centris_Research_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  toast('Excel file exported');
+}
+
+function exportSavedExcel() {
+  if (!savedSearches.length) { toast('No saved searches yet'); return; }
+  const wb = XLSX.utils.book_new();
+  const rows = [['Date', 'Query', 'City', 'Type', 'Min $', 'Max $', 'Bedrooms', 'DOM', 'Filters']];
+  for (const s of savedSearches) {
+    const filterStr = Object.entries(s.filters).filter(([,v]) => v).map(([k,v]) => `${k}:${v}`).join(', ');
+    rows.push([s.date, s.query, s.filters.city || '', s.filters.type || '', s.filters.min || '', s.filters.max || '', s.filters.beds || '', s.filters.dom || '', filterStr]);
+  }
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{ wch: 12 }, { wch: 45 }, { wch: 14 }, { wch: 14 }, { wch: 10 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 30 }];
+  XLSX.utils.book_append_sheet(wb, ws, 'Saved Searches');
+  XLSX.writeFile(wb, `Centris_Saved_Searches_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  toast('Saved searches exported');
+}
+
+function exportImmoContract() {
+  if (!history.length && !allResults.length) { toast('Run a search first'); return; }
+  const wb = XLSX.utils.book_new();
+
+  // Sheet 1: Comparables for Immo Contract
+  const compRows = [
+    ['COMPARABLES — IMMO CONTRACT', '', '', '', '', ''],
+    [`Generated: ${new Date().toLocaleDateString('fr-CA')}`, '', '', '', '', ''],
+    ['', '', '', '', '', ''],
+    ['#', 'Adresse / Description', 'Prix inscrit', 'Prix vendu', 'Chambres', 'Jours marché']
+  ];
+  allResults.forEach((p, i) => {
+    compRows.push([i + 1, (p.address || p.type || 'Propriété ' + (i + 1)), p.price, '', p.beds || '', p.dom || '']);
+  });
+  if (allResults.length === 0) {
+    compRows.push(['', 'Aucun comparable extrait — effectuez une recherche spécifique', '', '', '', '']);
+  }
+
+  // Sheet 2: Market summary
+  const summaryRows = [
+    ['SOMMAIRE DU MARCHÉ', ''],
+    [`Date de recherche: ${new Date().toLocaleDateString('fr-CA')}`, ''],
+    ['', ''],
+    ['Ville / Secteur', activeFilters.city || activeFilters.neighbourhood || 'Non spécifié'],
+    ['Type de propriété', activeFilters.type || 'Non spécifié'],
+    ['Fourchette de prix', `${activeFilters.min ? '$' + Number(activeFilters.min).toLocaleString() : 'N/A'} – ${activeFilters.max ? '$' + Number(activeFilters.max).toLocaleString() : 'N/A'}`],
+    ['Chambres (min)', activeFilters.beds || 'Non spécifié'],
+    ['', ''],
+    ['RÉSUMÉ DES RECHERCHES', ''],
+  ];
+  for (let i = 0; i < history.length; i += 2) {
+    const u = history[i];
+    const q = typeof u.content === 'string' ? u.content.split('\n')[0] : (u.content[0]?.text || '').split('\n')[0];
+    summaryRows.push([`Recherche ${Math.floor(i / 2) + 1}`, q]);
+  }
+
+  const ws1 = XLSX.utils.aoa_to_sheet(compRows);
+  ws1['!cols'] = [{ wch: 4 }, { wch: 40 }, { wch: 14 }, { wch: 14 }, { wch: 10 }, { wch: 14 }];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Comparables');
+
+  const ws2 = XLSX.utils.aoa_to_sheet(summaryRows);
+  ws2['!cols'] = [{ wch: 24 }, { wch: 50 }];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Sommaire marché');
+
+  XLSX.writeFile(wb, `Immo_Contract_Comparables_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  toast('Immo Contract file exported');
+}
+
+// ── API Key management ──
+let API_KEY = '';
+
+function showKeyModal() {
+  document.getElementById('key-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('key-input').focus(), 80);
+}
+
+function hideKeyModal() {
+  document.getElementById('key-modal').style.display = 'none';
+}
+
+function toggleEye() {
+  const inp = document.getElementById('key-input');
+  const showing = inp.type === 'text';
+  inp.type = showing ? 'password' : 'text';
+  document.getElementById('eye-icon').innerHTML = showing
+    ? '<path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/>'
+    : '<path d="M2 2l12 12M6.5 6.7A3 3 0 0010.3 10M4.2 4.4C2.6 5.6 1 8 1 8s2.5 5 7 5c1.4 0 2.7-.4 3.8-1M7 3.1C7.3 3 7.7 3 8 3c4.5 0 7 5 7 5s-.7 1.4-1.9 2.6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>';
+}
+
+function clearKeyError() {
+  document.getElementById('key-error').style.display = 'none';
+}
+
+function submitKey() {
+  const val = document.getElementById('key-input').value.trim();
+  if (!val.startsWith('sk-ant-') && !val.startsWith('sk-')) {
+    document.getElementById('key-error').style.display = 'block';
+    return;
+  }
+  API_KEY = val;
+  hideKeyModal();
+  document.getElementById('key-status-btn').style.display = 'flex';
+  document.getElementById('key-input').value = '';
+  toast('API key set — ready to search');
+  sbtn.disabled = false;
+  inputEl.focus();
+}
+
+// Show modal on load
+window.addEventListener('DOMContentLoaded', () => {
+  sbtn.disabled = true;
+  showKeyModal();
+});
+
+// Patch send() to use dynamic key
+const _origFetch = window.fetch.bind(window);
+const _patchedHeaders = () => ({ 'Content-Type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' });
+
+async function send() {
+  const q = inputEl.value.trim();
+  if (!q) return;
+  if (!API_KEY) { showKeyModal(); return; }
+  lastQuery = q;
+  inputEl.value = '';
+  sbtn.disabled = true;
+  document.getElementById('chips').style.display = 'none';
+
+  addMsg('user', q);
+  const userContent = q + getFilterPrompt();
+  history.push({ role: 'user', content: userContent });
+
+  addThinking();
+  addStatus('Searching Centris.ca and Quebec real estate sources…');
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: _patchedHeaders(),
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 600,
+        system: SYSTEM,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: history.slice(-6)
+      })
+    });
+    const data = await res.json();
+
+    document.getElementById('thinking')?.remove();
+    document.getElementById('search-status-msg')?.remove();
+
+    if (data.error) {
+      if (data.error.type === 'authentication_error') {
+        API_KEY = '';
+        document.getElementById('key-status-btn').style.display = 'none';
+        addMsg('bot', `<p style="color:var(--accent)">Invalid API key. Please re-enter your key.</p>`);
+        showKeyModal();
+        sbtn.disabled = false;
+        return;
+      }
+      throw new Error(data.error.message);
+    }
+
+    const textBlocks = data.content.filter(b => b.type === 'text');
+    const fullText = textBlocks.map(b => b.text).join('\n');
+    history.push({ role: 'assistant', content: data.content });
+  if (history.length > 20) history = history.slice(-10);
+
+    const props = extractProperties(fullText);
+    if (props.length) allResults.push(...props);
+
+    const compsHtml = buildCompsTable(props);
+    const html = fmt(fullText) + compsHtml +
+      `<div class="source-bar"><div class="pulse" style="animation:none;opacity:0.6"></div>Sources: Centris.ca · QPAREB · Web search — ${new Date().toLocaleDateString('fr-CA')}</div>`;
+
+    addMsg('bot', html);
+    saveSearchToSupabase(q, fullText);
+  } catch (e) {
+    document.getElementById('thinking')?.remove();
+    document.getElementById('search-status-msg')?.remove();
+    addMsg('bot', `<p style="color:var(--accent)">Connection error.</p><p style="font-size:12px;color:var(--muted)">${e.message}</p>`);
+  }
+  sbtn.disabled = false;
+  inputEl.focus();
+}
+</script>
+
+<!-- API Key Modal -->
+<div class="modal-overlay" id="key-modal" style="display:none">
+  <div class="modal-box">
+    <div class="modal-logo">CR</div>
+    <h2>Enter your Anthropic API key</h2>
+    <p>Your key stays in memory only — never saved to disk, never stored anywhere. It goes directly to <strong>api.anthropic.com</strong> and nowhere else. Get your key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys.</p>
+    <div class="modal-error" id="key-error">Key should start with <code>sk-ant-</code> — check and try again.</div>
+    <div class="key-input-wrap">
+      <input type="password" id="key-input" placeholder="sk-ant-api03-…" oninput="clearKeyError()" onkeydown="if(event.key==='Enter')submitKey()" autocomplete="off" />
+      <button class="eye-btn" onclick="toggleEye()">
+        <svg id="eye-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/></svg>
+      </button>
+    </div>
+    <div class="modal-hint"><strong>Session only.</strong> Close the tab and the key is gone. You'll be asked again next time you open the file.</div>
+    <button class="modal-submit" onclick="submitKey()">Start researching →</button>
+  </div>
+</div>
+
+<!-- Login Modal -->
+<div class="modal-overlay" id="login-modal" style="display:none">
+  <div class="modal-box">
+    <div class="modal-logo">CR</div>
+    <h2>Sign in to your account</h2>
+    <p>Sign in to save your searches permanently. Your history will sync across devices and be available to you anytime.</p>
+    <div class="modal-error" id="login-error"></div>
+    <input type="email" id="login-email" class="fake-input" placeholder="your@email.com" style="width:100%;padding:10px 13px;border:0.5px solid var(--border);border-radius:var(--r-sm);background:var(--bg);color:var(--text);font-size:13px;outline:none;margin-bottom:8px" onkeydown="if(event.key==='Enter')submitLogin()" />
+    <input type="password" id="login-password" class="fake-input" placeholder="Password" style="width:100%;padding:10px 13px;border:0.5px solid var(--border);border-radius:var(--r-sm);background:var(--bg);color:var(--text);font-size:13px;outline:none;margin-bottom:12px" onkeydown="if(event.key==='Enter')submitLogin()" />
+    <button class="modal-submit" onclick="submitLogin()">Sign in →</button>
+    <div class="login-divider">or</div>
+    <button onclick="hideLoginModal()" style="width:100%;padding:8px;border:0.5px solid var(--border);border-radius:var(--r-sm);background:transparent;color:var(--muted);font-size:13px;cursor:pointer">Continue without signing in</button>
+    <p style="font-size:11px;color:var(--hint);margin-top:10px;text-align:center">Use the email Alexandria invited you with from Supabase</p>
+  </div>
+</div>
+
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  sbtn.disabled = true;
+  initSupabase();
+  showKeyModal();
+});
+</script>
+
+</body>
+</html>
