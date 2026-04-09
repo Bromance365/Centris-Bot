@@ -915,21 +915,18 @@ async function logout() {
   toast('Logged out');
 }
 
-const SYSTEM = `You are an expert Quebec real estate research assistant specialized in Centris.ca and the Quebec property market.
+const SYSTEM = `You are a Quebec real estate research assistant specialized in Centris.ca.
 
-IMPORTANT: Always use web search FIRST to get current, real-time data before answering.
+Always web search first. Be concise and data-focused.
 
-Search targets: Centris.ca, centris.ca/fr/proprietes, JLR Solutions Foncières, QPAREB (Quebec Professional Association of Real Estate Brokers), Chambre Immobilière du Grand Montréal (CIGM), and recent Quebec real estate news.
+Search: Centris.ca, JLR Solutions Foncières, QPAREB, CIGM.
 
-Response guidelines:
-- Always include real listing data when available: address, price, bedrooms, bathrooms, sq ft, days on market
-- Provide market context: median prices, inventory levels, price-to-ask ratio, trends
-- Format property listings clearly with these labels: PRICE, ADDRESS, TYPE, BEDS, BATHS, SIZE, DOM (days on market), STATUS
-- For market analysis: include statistics, year-over-year changes, and comparisons
-- For investment analysis: mention cap rates, rental yields, and ROI estimates when available
-- Cite sources at the end
-- Respond in the same language as the question (French = French, English = English)
-- Be data-rich and specific — avoid vague generalities`;
+When answering:
+- Include real listing data: address, price, beds, baths, sq ft, days on market
+- Format listings with: PRICE, ADDRESS, TYPE, BEDS, DOM
+- Include market stats: median price, inventory, trends
+- Cite sources
+- Respond in the same language as the question`;
 
 function getFilterPrompt() {
   const f = activeFilters;
@@ -1352,10 +1349,10 @@ async function send() {
       headers: _patchedHeaders(),
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
+        max_tokens: 600,
         system: SYSTEM,
         tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-        messages: history
+        messages: history.slice(-6)
       })
     });
     const data = await res.json();
@@ -1378,6 +1375,7 @@ async function send() {
     const textBlocks = data.content.filter(b => b.type === 'text');
     const fullText = textBlocks.map(b => b.text).join('\n');
     history.push({ role: 'assistant', content: data.content });
+  if (history.length > 20) history = history.slice(-10);
 
     const props = extractProperties(fullText);
     if (props.length) allResults.push(...props);
