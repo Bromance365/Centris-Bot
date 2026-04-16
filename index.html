@@ -1059,7 +1059,6 @@ AGENCY DISCLOSURE
 
 const SYSTEM_ACTIVE = `You are an expert Quebec real estate research assistant and licensed broker knowledge base. You have deep expertise in Quebec real estate law, OACIQ regulations, and Montreal market conditions.
 
-${quebec_re_rules_placeholder}
 
 ALWAYS WEB SEARCH FIRST. Search all platforms simultaneously.
 
@@ -1098,7 +1097,6 @@ Respond in the same language as the question.`;
 
 const SYSTEM_OFFMARKET = `You are an expert Quebec off-market real estate specialist with deep knowledge of Quebec property law and OACIQ regulations.
 
-${quebec_re_rules_placeholder}
 
 ALWAYS WEB SEARCH FIRST.
 
@@ -1140,7 +1138,6 @@ Respond in the same language as the question.`;
 
 const SYSTEM_SOLD = `You are an expert Quebec real estate comparables specialist with deep knowledge of Quebec transaction law and market data sources.
 
-${quebec_re_rules_placeholder}
 
 ALWAYS WEB SEARCH FIRST.
 
@@ -1174,7 +1171,6 @@ Respond in the same language as the question.`;
 
 const SYSTEM_MARKET = `You are an expert Quebec real estate market analyst with deep knowledge of Montreal and regional markets, economic indicators, and OACIQ regulatory context.
 
-${quebec_re_rules_placeholder}
 
 ALWAYS WEB SEARCH FIRST.
 
@@ -1209,7 +1205,6 @@ Respond in the same language as the question.`;
 
 const SYSTEM_OUTREACH = `You are an expert Quebec real estate agent assistant with full knowledge of OACIQ regulations governing agent-client communications.
 
-${quebec_re_rules_placeholder}
 
 REGULATORY COMPLIANCE FOR OUTREACH:
 - Agent must disclose their OACIQ licence number in all written communications
@@ -1243,7 +1238,6 @@ Generate professional outreach in both French and English:
 
 const SYSTEM_OFFER = `You are an expert Quebec real estate offer strategy specialist with deep knowledge of OACIQ forms, negotiation law, and Montreal market conditions.
 
-${quebec_re_rules_placeholder}
 
 ALWAYS WEB SEARCH FIRST for:
 - Recent verified sold comps — same type, same area, last 90 days [JLR] [QPAREB]
@@ -1297,7 +1291,6 @@ Be specific with dollar amounts. Respond in the same language as the question.`;
 
 const SYSTEM_CMA = `You are an expert Quebec real estate CMA specialist with deep knowledge of OACIQ professional standards, JLR transaction data, and Montreal valuation methodology.
 
-${quebec_re_rules_placeholder}
 
 ALWAYS WEB SEARCH FIRST using: JLR Solutions Foncières, Registre Foncier Quebec, QPAREB statistics, Centris listing history, municipal assessment rolls (rôle d'évaluation).
 
@@ -1356,7 +1349,6 @@ Respond in the same language as the question.`;
 
 const SYSTEM_RENTAL = `You are an expert Quebec plex and rental income verification specialist with deep knowledge of the Residential Tenancies Act, TAL jurisprudence, and SCHL rental market data.
 
-${quebec_re_rules_placeholder}
 
 ALWAYS WEB SEARCH FIRST.
 
@@ -1430,8 +1422,7 @@ REGULATORY NOTES
 Respond in the same language as the question.`;
 
 // Replace placeholder with actual rules in each system
-const quebec_re_rules_placeholder = '';
-const injectRules = (s) => s.replace('${quebec_re_rules_placeholder}', QUEBEC_RE_RULES);
+const injectRules = (s) => s + '\n\n' + QUEBEC_RE_RULES;
 
 let currentMode = 'active';
 
